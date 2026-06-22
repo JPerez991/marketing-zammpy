@@ -2,12 +2,7 @@ const puppeteer = require('puppeteer-core');
 const config = require('./config');
 const { loadJSON, saveJSON, normalizePhone, sleep } = require('./utils');
 
-async function scrapeAllZones() {
-  console.log('=== SCRAPER: Buscando restaurantes en Google Maps ===\n');
-
-  const existing = loadJSON(config.restaurantesFile) || [];
-  console.log(`Restaurantes en archivo: ${existing.length}`);
-
+async function launchBrowser() {
   const browser = await puppeteer.launch({
     executablePath: config.chromePath,
     headless: false,
@@ -28,12 +23,20 @@ async function scrapeAllZones() {
     Object.defineProperty(navigator, 'webdriver', { get: () => false });
   });
 
+  return { browser, page };
+}
+
+async function scrapeAllZones() {
+  console.log('\n=== BUSCANDO RESTAURANTES EN GOOGLE MAPS ===\n');
+
+  const { browser, page } = await launchBrowser();
+  const existing = loadJSON(config.restaurantesFile) || [];
   let total = existing.length;
 
   for (const zone of config.zones) {
-    console.log(`\n📍 Zona: ${zone}`);
+    console.log(`📍 Zona: ${zone}`);
     const nuevos = await scrapeZone(page, zone);
-    console.log(`   Encontrados en página: ${nuevos.length}`);
+    console.log(`   Encontrados: ${nuevos.length}`);
 
     for (const r of nuevos) {
       const dupe = r.telefono
@@ -47,11 +50,11 @@ async function scrapeAllZones() {
     }
 
     saveJSON(config.restaurantesFile, existing);
-    console.log(`   Total acumulado: ${total}`);
+    console.log(`   Total acumulado: ${total}\n`);
   }
 
   await browser.close();
-  console.log(`\n✅ Scraping completado. Total: ${total} restaurantes`);
+  console.log(`✅ Scraping completado. Total: ${total} restaurantes\n`);
   return existing;
 }
 
@@ -91,7 +94,7 @@ async function scrapeZone(page, zone) {
     return items;
   });
 
-  console.log(`   Resultados únicos: ${results.length}`);
+  console.log(`   Resultados en página: ${results.length}`);
 
   const places = [];
   const seen = new Set();
@@ -233,4 +236,4 @@ async function scrapeAndSave() {
   return await scrapeAllZones();
 }
 
-module.exports = { scrapeAllZones, scrapeAndSave };
+module.exports = { launchBrowser, scrapeAllZones, scrapeZone, scrapeAndSave };
