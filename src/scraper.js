@@ -33,7 +33,7 @@ async function scrapeAllZones() {
   const existing = loadJSON(config.restaurantesFile) || [];
   let total = existing.length;
 
-  for (const zone of config.zones) {
+  for (const zone of config.ciudades) {
     console.log(`📍 Zona: ${zone}`);
     const nuevos = await scrapeZone(page, zone);
     console.log(`   Encontrados: ${nuevos.length}`);
@@ -134,7 +134,7 @@ async function scrapeZone(page, zone) {
           nombre: data.name,
           telefono: phone,
           direccion: data.address,
-          zona: zone.split(',')[0].trim(),
+          ciudad: zone,
           rating: data.rating,
           reviews: data.reviews,
           fecha: new Date().toISOString(),

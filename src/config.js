@@ -15,15 +15,22 @@ module.exports = {
   minDelay: parseInt(process.env.MIN_DELAY_MS, 10) || 45000,
   maxDelay: parseInt(process.env.MAX_DELAY_MS, 10) || 65000,
 
-  zones: [
-    'El Poblado, Medellín',
-    'Laureles, Medellín',
-    'Centro de Medellín',
-    'Belén, Medellín',
-    'Envigado',
-    'Sabaneta',
-    'Itagüí',
-    'Bello'
+  ciudades: [
+    'Bogotá',
+    'Medellín',
+    'Cali',
+    'Barranquilla',
+    'Cartagena',
+    'Bucaramanga',
+    'Pereira',
+    'Santa Marta',
+    'Cúcuta',
+    'Ibagué',
+    'Villavicencio',
+    'Manizales',
+    'Pasto',
+    'Neiva',
+    'Armenia'
   ],
 
   messageText: `Le comparto una demostración de Zammpy, una plataforma de menús digitales para restaurantes que puede personalizarse con los colores y estilo de su marca.

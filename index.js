@@ -52,11 +52,63 @@ function showMenu() {
   console.log('');
 }
 
-async function showResumenFinal({ zonas, enviados, errores, sinWA }) {
+function seleccionarCiudades() {
+  console.log('\n' + '═'.repeat(50));
+  console.log('  🏙️  SELECCIONAR CIUDADES');
+  console.log('═'.repeat(50));
+  console.log('');
+
+  const ciudades = config.ciudades;
+  for (let i = 0; i < ciudades.length; i++) {
+    console.log(`  ${String(i + 1).padStart(2)}. ${ciudades[i]}`);
+  }
+  console.log('');
+  console.log('   0. 🌎 Todas las ciudades');
+  console.log('');
+}
+
+function parseSeleccion(input) {
+  if (!input) return [];
+
+  input = input.trim().toLowerCase();
+
+  if (input === '0' || input === 't' || input === 'todas' || input === 'all' || input === 'todo') {
+    return [...config.ciudades];
+  }
+
+  const partes = input.split(',').map(p => p.trim());
+  const indices = new Set();
+
+  for (const parte of partes) {
+    if (parte.includes('-')) {
+      const [inicio, fin] = parte.split('-').map(n => parseInt(n, 10));
+      if (!isNaN(inicio) && !isNaN(fin)) {
+        for (let i = inicio; i <= fin; i++) {
+          indices.add(i);
+        }
+      }
+    } else {
+      const num = parseInt(parte, 10);
+      if (!isNaN(num)) indices.add(num);
+    }
+  }
+
+  const ciudades = [];
+  for (const idx of indices) {
+    const i = idx - 1;
+    if (i >= 0 && i < config.ciudades.length) {
+      ciudades.push(config.ciudades[i]);
+    }
+  }
+
+  return ciudades;
+}
+
+async function showResumenFinal({ ciudades, enviados, errores, sinWA }) {
   console.log('\n═══════════════════════════════════════');
   console.log('  📊 RESUMEN FINAL');
   console.log('═══════════════════════════════════════');
-  console.log(`   🏪 Zonas procesadas:  ${zonas}`);
+  console.log(`   🏪 Ciudades procesadas: ${ciudades}`);
   if (enviados > 0) console.log(`   ✅ WhatsApp enviados: ${enviados}`);
   if (errores > 0) console.log(`   ❌ Errores:           ${errores}`);
   if (sinWA > 0) console.log(`   📵 Sin WhatsApp:      ${sinWA}`);
@@ -68,6 +120,21 @@ async function iniciarProceso() {
   console.log('  🚀 INICIANDO PROCESO COMPLETO');
   console.log('='.repeat(50));
   console.log('  Presiona S en cualquier momento para detener\n');
+
+  seleccionarCiudades();
+  const input = await ask('Selecciona ciudades (ej: 1,3,5 o 2-4 o 0 para todas): ');
+  const ciudades = parseSeleccion(input);
+
+  if (ciudades.length === 0) {
+    console.log('\n⚠️ No seleccionaste ninguna ciudad válida.\n');
+    return;
+  }
+
+  console.log(`\n📍 Ciudades a procesar (${ciudades.length}):`);
+  for (const c of ciudades) {
+    console.log(`   • ${c}`);
+  }
+  console.log('');
 
   setupStopKey();
 
@@ -95,28 +162,28 @@ async function iniciarProceso() {
   let totalEnviados = 0;
   let totalErrores = 0;
   let totalSinWA = 0;
-  let zonasProcesadas = 0;
+  let ciudadesProcesadas = 0;
   let procesoDetenido = false;
 
-  for (const zone of config.zones) {
+  for (const ciudad of ciudades) {
     if (stopRequested) {
       procesoDetenido = true;
       break;
     }
 
-    zonasProcesadas++;
+    ciudadesProcesadas++;
     console.log(`\n${'─'.repeat(50)}`);
-    console.log(`📍 ZONA ${zonasProcesadas}/${config.zones.length}: ${zone}`);
+    console.log(`📍 CIUDAD ${ciudadesProcesadas}/${ciudades.length}: ${ciudad}`);
     console.log(`${'─'.repeat(50)}\n`);
 
-    const nuevos = await scrapeZone(page, zone);
+    const nuevos = await scrapeZone(page, ciudad);
     console.log(`   Encontrados en página: ${nuevos.length}`);
 
     let agregados = 0;
     for (const r of nuevos) {
       const dupe = r.telefono
         ? existing.some(e => e.telefono === r.telefono)
-        : existing.some(e => e.nombre === r.nombre && e.zona === zone);
+        : existing.some(e => e.nombre === r.nombre && e.ciudad === ciudad);
 
       if (!dupe) {
         existing.push(r);
@@ -153,7 +220,7 @@ async function iniciarProceso() {
 
   console.log(`✅ Proceso ${procesoDetenido ? 'detenido' : 'completado'}`);
   await showResumenFinal({
-    zonas: zonasProcesadas,
+    ciudades: ciudadesProcesadas,
     enviados: totalEnviados,
     errores: totalErrores,
     sinWA: totalSinWA

@@ -31,7 +31,7 @@ async function exportToExcel() {
       { header: 'Nombre', key: 'nombre', width: 40 },
       { header: 'Teléfono', key: 'telefono', width: 18 },
       { header: 'Dirección', key: 'direccion', width: 45 },
-      { header: 'Zona', key: 'zona', width: 20 },
+      { header: 'Ciudad', key: 'ciudad', width: 20 },
       { header: 'Rating', key: 'rating', width: 10 },
       { header: 'Fecha', key: 'fecha', width: 14 },
       { header: 'Estado', key: 'estado', width: 18 }
@@ -69,7 +69,7 @@ async function exportToExcel() {
       nombre: r.nombre || '',
       telefono: r.telefono || '',
       direccion: r.direccion || '',
-      zona: r.zona || '',
+      ciudad: r.ciudad || '',
       rating: r.rating || '',
       fecha: r.fecha ? new Date(r.fecha).toLocaleDateString('es-CO') : '',
       estado: estadoMap[r.estado] || r.estado || 'Pendiente'
