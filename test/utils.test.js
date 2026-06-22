@@ -72,6 +72,11 @@ describe('normalizePhone', () => {
     assert.equal(normalizePhone('3001234567'), '+573001234567');
   });
 
+  it('adds +57 to 10-digit landline numbers', () => {
+    assert.equal(normalizePhone('6041234567'), '+576041234567');
+    assert.equal(normalizePhone('6012345678'), '+576012345678');
+  });
+
   it('adds +57350 to 7-digit numbers', () => {
     assert.equal(normalizePhone('1234567'), '+573501234567');
   });

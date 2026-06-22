@@ -185,12 +185,16 @@ async function extractPlaceData(page) {
 
     let phone = '';
     const phoneSelectors = [
+      'button[data-tooltip="Copy phone number"]',
+      'button[data-tooltip="Copiar número telefónico"]',
       '[data-item-id="phone:tel"]',
       'button[data-tooltip*="teléfono"]',
       'button[data-tooltip*="phone"]',
       'a[href^="tel:"]',
       '[aria-label*="teléfono"]',
       '[aria-label*="phone"]',
+      '[data-attrid*="phone"]',
+      '[data-attrid*="tel"]',
       'button[data-value*="tel"]'
     ];
     for (const sel of phoneSelectors) {

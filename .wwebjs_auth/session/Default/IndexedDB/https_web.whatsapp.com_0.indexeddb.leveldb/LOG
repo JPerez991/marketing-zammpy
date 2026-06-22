@@ -1,0 +1,12 @@
+2026/06/21-23:53:35.442 a60 Reusing MANIFEST C:\Users\O\Desktop\marketing-zammpy\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/06/21-23:53:35.442 a60 Recovering log #7
+2026/06/21-23:53:35.485 a60 Reusing old log C:\Users\O\Desktop\marketing-zammpy\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000007.log 
+2026/06/21-23:55:05.683 2abc Level-0 table #12: started
+2026/06/21-23:55:05.984 2abc Level-0 table #12: 1084292 bytes OK
+2026/06/21-23:55:06.180 2abc Delete type=0 #7
+2026/06/21-23:55:38.879 84c Compacting 1@1 + 1@2 files
+2026/06/21-23:55:40.735 84c Generated table #13@1: 28188 keys, 1198414 bytes
+2026/06/21-23:55:40.735 84c Compacted 1@1 + 1@2 files => 1198414 bytes
+2026/06/21-23:55:41.056 84c compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/06/21-23:55:41.057 84c Delete type=2 #9
+2026/06/21-23:55:41.057 84c Delete type=2 #12

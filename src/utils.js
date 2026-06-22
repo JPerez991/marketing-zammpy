@@ -33,7 +33,7 @@ function normalizePhone(phone) {
   if (digits.startsWith('57') && digits.length >= 11) {
     return '+' + digits;
   }
-  if (digits.length === 10 && digits.startsWith('3')) {
+  if (digits.length === 10) {
     return '+57' + digits;
   }
   if (digits.length === 7) {
