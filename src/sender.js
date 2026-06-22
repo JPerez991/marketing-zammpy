@@ -83,8 +83,9 @@ async function sendPending(client, { onStopCheck } = {}) {
     try {
       console.log(`   📤 Enviando a: ${r.nombre} (${r.telefono})`);
 
-      const caption = config.messageTemplate(r.nombre, r.dueno);
-      await client.sendMessage(chatId, media, { caption });
+      await client.sendMessage(chatId, media, {
+        caption: config.messageText
+      });
 
       console.log(`   ✅ Enviado correctamente`);
       r.estado = 'enviado';
