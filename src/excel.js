@@ -29,6 +29,7 @@ async function exportToExcel() {
 
     worksheet.columns = [
       { header: 'Nombre', key: 'nombre', width: 40 },
+      { header: 'Dueño', key: 'dueno', width: 25 },
       { header: 'Teléfono', key: 'telefono', width: 18 },
       { header: 'Dirección', key: 'direccion', width: 45 },
       { header: 'Ciudad', key: 'ciudad', width: 20 },
@@ -67,6 +68,7 @@ async function exportToExcel() {
 
     worksheet.addRow({
       nombre: r.nombre || '',
+      dueno: r.dueno || '',
       telefono: r.telefono || '',
       direccion: r.direccion || '',
       ciudad: r.ciudad || '',

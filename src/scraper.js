@@ -41,7 +41,7 @@ async function scrapeAllZones() {
     for (const r of nuevos) {
       const dupe = r.telefono
         ? existing.some(e => e.telefono === r.telefono)
-        : existing.some(e => e.nombre === r.nombre && e.zona === zone);
+        : existing.some(e => e.nombre === r.nombre && e.ciudad === zone);
 
       if (!dupe) {
         existing.push(r);
@@ -132,6 +132,7 @@ async function scrapeZone(page, zone) {
         seen.add(data.name + zone);
         places.push({
           nombre: data.name,
+          dueno: data.dueno || '',
           telefono: phone,
           direccion: data.address,
           ciudad: zone,
@@ -174,7 +175,7 @@ async function scrollResults(page) {
 }
 
 async function extractPlaceData(page) {
-  await sleep(1500);
+  await sleep(2500);
 
   return await page.evaluate(() => {
     const text = (el) => el ? el.textContent.trim() : '';
@@ -188,6 +189,7 @@ async function extractPlaceData(page) {
       'button[data-tooltip="Copy phone number"]',
       'button[data-tooltip="Copiar número telefónico"]',
       '[data-item-id="phone:tel"]',
+      'a[data-item-id*="phone"]',
       'button[data-tooltip*="teléfono"]',
       'button[data-tooltip*="phone"]',
       'a[href^="tel:"]',
@@ -195,18 +197,37 @@ async function extractPlaceData(page) {
       '[aria-label*="phone"]',
       '[data-attrid*="phone"]',
       '[data-attrid*="tel"]',
-      'button[data-value*="tel"]'
+      'button[data-value*="tel"]',
+      'div[data-value*="tel"]'
     ];
     for (const sel of phoneSelectors) {
-      const el = document.querySelector(sel);
-      if (el) {
-        phone = el.getAttribute('data-phone-number')
+      const els = document.querySelectorAll(sel);
+      for (const el of els) {
+        const raw = el.getAttribute('data-phone-number')
           || el.getAttribute('href')?.replace('tel:', '')
-          || el.textContent
+          || el.getAttribute('data-value')
           || el.getAttribute('aria-label')
+          || el.textContent
+          || el.innerText
           || '';
-        phone = phone.replace(/[^\d+]/g, '');
-        if (phone) break;
+        const cleaned = raw.replace(/[^\d+]/g, '');
+        if (cleaned && cleaned.replace(/[^\d]/g, '').length >= 7) {
+          phone = cleaned;
+          break;
+        }
+      }
+      if (phone) break;
+    }
+
+    if (!phone) {
+      const allElements = document.querySelectorAll('[class*="fontBodyMedium"], [class*="CsEnBe"], [jsname*="phone"]');
+      for (const el of allElements) {
+        const raw = el.textContent || el.innerText || '';
+        const cleaned = raw.replace(/[^\d+]/g, '');
+        if (cleaned.replace(/[^\d]/g, '').length >= 7) {
+          phone = cleaned;
+          break;
+        }
       }
     }
 
@@ -227,12 +248,21 @@ async function extractPlaceData(page) {
       }
     }
 
+    let dueno = '';
+    const bodyText = document.body.innerText || '';
+    const ownerRegex = /(?:propietario|dueño|owner|administrador|gerente|encargado|contacto)\s*:?\s*([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/i;
+    const match = bodyText.match(ownerRegex);
+    if (match && match[1]) {
+      dueno = match[1].trim().replace(/\s+/g, ' ');
+      if (dueno.length > 60) dueno = '';
+    }
+
     const ratingEl = document.querySelector('[role="img"][aria-label*="estrella"], [role="img"][aria-label*="star"]');
     const rating = ratingEl ? ratingEl.getAttribute('aria-label') || '' : '';
     const ratingNum = rating.match(/([\d.]+)/)?.[1] || '';
     const reviews = rating.match(/(\d+)\s*(reseñas?|review)/i)?.[1] || '';
 
-    return { name, phone, address, rating: ratingNum, reviews };
+    return { name, phone, address, rating: ratingNum, reviews, dueno };
   });
 }
 

@@ -8,33 +8,31 @@ const { loadJSON, saveJSON } = require('./src/utils');
 
 let stopRequested = false;
 
-function setupStopKey() {
-  stopRequested = false;
-  readline.emitKeypressEvents(process.stdin);
-  if (process.stdin.isTTY) process.stdin.setRawMode(true);
-  process.stdin.on('keypress', (str, key) => {
-    if (key && key.name === 's') {
-      stopRequested = true;
-      console.log('\n   ⏹ Tecla S detectada — deteniendo al finalizar el envío actual...\n');
-    }
-  });
-}
-
-function removeStopKey() {
-  try {
-    if (process.stdin.isTTY) process.stdin.setRawMode(false);
-    process.stdin.removeAllListeners('keypress');
-  } catch {}
-}
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
 
 function ask(question) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise(resolve => {
     rl.question(question, answer => {
-      rl.close();
       resolve(answer.trim().toLowerCase());
     });
   });
+}
+
+function onKeypress(str, key) {
+  if (stopRequested) return;
+  if ((key && key.name === 's') || str === 's' || str === 'S') {
+    stopRequested = true;
+    console.log('\n   ⏹ Tecla S detectada — deteniendo al finalizar el envío actual...\n');
+  }
+}
+
+function setupStopKey() {
+  stopRequested = false;
+  process.stdin.on('keypress', onKeypress);
+}
+
+function removeStopKey() {
+  process.stdin.removeListener('keypress', onKeypress);
 }
 
 function showMenu() {
@@ -231,6 +229,11 @@ async function iniciarProceso() {
     await exportToExcel();
   }
 }
+
+rl.on('close', () => {
+  console.log('\n👋 ¡Hasta luego!\n');
+  process.exit(0);
+});
 
 async function main() {
   let running = true;

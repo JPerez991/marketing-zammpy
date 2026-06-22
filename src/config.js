@@ -41,5 +41,20 @@ module.exports = {
 
 Si le interesa, los primeros negocios en unirse pueden acceder a 15 días gratis sin necesidad de tarjeta de crédito.
 
-Si tiene alguna duda o desea más información, con gusto le ayudamos`
+Si tiene alguna duda o desea más información, con gusto le ayudamos`,
+
+  messageTemplate(nombre, dueno = '') {
+    const saludo = dueno
+      ? `Hola ${dueno}, soy de Zammpy`
+      : `Hola, soy de Zammpy`;
+    return `${saludo} y le escribo para compartirle una demostración de nuestra plataforma de menús digitales para restaurantes como ${nombre}. Puede personalizarse con los colores y estilo de su marca.
+
+📱 Demo: https://app.zammpy.com/preview/demo
+🌐 Web: https://www.zammpy.com/
+📷 Instagram: https://www.instagram.com/zammpy.app/
+
+Los primeros negocios en unirse pueden acceder a 15 días gratis sin necesidad de tarjeta de crédito.
+
+Si tiene alguna duda o desea más información, con gusto le ayudamos`;
+  }
 };
