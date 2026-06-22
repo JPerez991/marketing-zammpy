@@ -85,10 +85,10 @@ async function scrapeZone(page, zone) {
     for (const article of articles) {
       const link = article.querySelector('a');
       if (!link) continue;
-      const nameEl = link.querySelector('.fontHeadlineSmall') || link.querySelector('h3');
+      const nameEl = article.querySelector('.fontHeadlineSmall') || article.querySelector('h3');
       const name = nameEl ? nameEl.textContent.trim() : '';
       if (!name) continue;
-      const href = link.href || '';
+      const href = link.getAttribute('href') || '';
       items.push({ name, href });
     }
     return items;
@@ -101,20 +101,14 @@ async function scrapeZone(page, zone) {
 
   for (let i = 0; i < Math.min(results.length, 50); i++) {
     try {
-      const idx = await page.evaluate(() => {
+      await page.evaluate((index) => {
         const articles = document.querySelectorAll('[role="feed"] > [role="article"], [role="feed"] > div > [role="article"]');
-        for (let j = 0; j < articles.length; j++) {
-          const link = articles[j].querySelector('a');
-          if (!link) continue;
-          const nameEl = link.querySelector('.fontHeadlineSmall') || link.querySelector('h3');
-          if (!nameEl) continue;
-          link.scrollIntoView({ block: 'center' });
-          return j;
-        }
-        return -1;
-      });
-
-      if (idx === -1) break;
+        const article = articles[index];
+        if (!article) return;
+        const link = article.querySelector('a');
+        if (link) link.scrollIntoView({ block: 'center' });
+      }, i);
+      await sleep(500);
 
       const articles = await page.$$('[role="feed"] > [role="article"], [role="feed"] > div > [role="article"]');
       if (i >= articles.length) break;

@@ -6,6 +6,15 @@ const { exportToExcel } = require('./src/excel');
 const config = require('./src/config');
 const { loadJSON, saveJSON } = require('./src/utils');
 
+process.on('unhandledRejection', (reason) => {
+  console.error(`\n⚠️ Error interno no manejado (el programa continúa): ${reason instanceof Error ? reason.message : reason}\n`);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error(`\n⚠️ Error crítico: ${err.message}\n`);
+  console.error(err.stack);
+});
+
 let stopRequested = false;
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
@@ -156,7 +165,6 @@ async function iniciarProceso() {
     return;
   }
 
-  const existing = loadJSON(config.restaurantesFile) || [];
   let totalEnviados = 0;
   let totalErrores = 0;
   let totalSinWA = 0;
@@ -174,6 +182,7 @@ async function iniciarProceso() {
     console.log(`📍 CIUDAD ${ciudadesProcesadas}/${ciudades.length}: ${ciudad}`);
     console.log(`${'─'.repeat(50)}\n`);
 
+    const existing = loadJSON(config.restaurantesFile) || [];
     const nuevos = await scrapeZone(page, ciudad);
     console.log(`   Encontrados en página: ${nuevos.length}`);
 
@@ -198,15 +207,19 @@ async function iniciarProceso() {
       break;
     }
 
-    const result = await sendPending(client, { onStopCheck: () => stopRequested });
-    printResumen(result);
-    totalEnviados += result.enviados;
-    totalErrores += result.errores;
-    totalSinWA += result.sinWA;
+    try {
+      const result = await sendPending(client, { onStopCheck: () => stopRequested });
+      printResumen(result);
+      totalEnviados += result.enviados;
+      totalErrores += result.errores;
+      totalSinWA += result.sinWA;
 
-    if (result.detenido) {
-      procesoDetenido = true;
-      break;
+      if (result.detenido) {
+        procesoDetenido = true;
+        break;
+      }
+    } catch (err) {
+      console.error(`   ❌ Error inesperado en envíos: ${err.message}`);
     }
   }
 

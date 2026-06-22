@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { loadJSON, saveJSON, normalizePhone, randomDelay } = require('../src/utils');
+const { loadJSON, saveJSON, normalizePhone, isMobilePhone, randomDelay } = require('../src/utils');
 
 describe('loadJSON', () => {
   const tmpFile = path.join(os.tmpdir(), `test-load-${Date.now()}.json`);
@@ -88,6 +88,37 @@ describe('normalizePhone', () => {
 
   it('strips non-digit characters', () => {
     assert.equal(normalizePhone('+57 (300) 123-4567'), '+573001234567');
+  });
+});
+
+describe('isMobilePhone', () => {
+  it('returns false for null/undefined/empty', () => {
+    assert.equal(isMobilePhone(null), false);
+    assert.equal(isMobilePhone(undefined), false);
+    assert.equal(isMobilePhone(''), false);
+  });
+
+  it('returns true for Colombian mobile numbers (+573...)', () => {
+    assert.equal(isMobilePhone('+573001234567'), true);
+    assert.equal(isMobilePhone('+573211234567'), true);
+    assert.equal(isMobilePhone('+573501234567'), true);
+    assert.equal(isMobilePhone('+5730012345678'), true);
+  });
+
+  it('returns false for Colombian landline numbers', () => {
+    assert.equal(isMobilePhone('+576045598892'), false);
+    assert.equal(isMobilePhone('+5712345678'), false);
+    assert.equal(isMobilePhone('+5741234567'), false);
+  });
+
+  it('works with formatted input', () => {
+    assert.equal(isMobilePhone('300 123 4567'), true);
+    assert.equal(isMobilePhone('604 123 4567'), false);
+  });
+
+  it('returns false for non-Colombian numbers', () => {
+    assert.equal(isMobilePhone('+521234567890'), false);
+    assert.equal(isMobilePhone('+15551234567'), false);
   });
 });
 

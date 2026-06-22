@@ -42,6 +42,18 @@ function normalizePhone(phone) {
   return '';
 }
 
+function isMobilePhone(phone) {
+  if (!phone) return false;
+  const digits = phone.replace(/[^\d+]/g, '');
+  let national = digits;
+  if (digits.startsWith('+57')) {
+    national = digits.slice(3);
+  } else if (digits.startsWith('57')) {
+    national = digits.slice(2);
+  }
+  return national.length >= 10 && national.startsWith('3');
+}
+
 function randomDelay(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -50,4 +62,4 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-module.exports = { loadJSON, saveJSON, normalizePhone, randomDelay, sleep };
+module.exports = { loadJSON, saveJSON, normalizePhone, isMobilePhone, randomDelay, sleep };

@@ -2,7 +2,7 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const config = require('./config');
-const { loadJSON, saveJSON, randomDelay, sleep } = require('./utils');
+const { loadJSON, saveJSON, isMobilePhone, sleep } = require('./utils');
 
 async function connectWhatsApp() {
   console.log('=== CONECTANDO WHATSAPP ===\n');
@@ -78,7 +78,35 @@ async function sendPending(client, { onStopCheck } = {}) {
       break;
     }
 
-    const chatId = r.telefono.includes('@c.us') ? r.telefono : `${r.telefono}@c.us`;
+    if (!isMobilePhone(r.telefono)) {
+      console.log(`   📵 ${r.nombre} (${r.telefono}) — número fijo, no tiene WhatsApp`);
+      r.estado = 'sin_whatsapp';
+      sinWA++;
+      saveJSON(config.restaurantesFile, restaurants);
+      continue;
+    }
+
+    const rawNumber = r.telefono.startsWith('+') ? r.telefono.slice(1) : r.telefono;
+
+    let registeredId = null;
+    let verified = false;
+    try {
+      registeredId = await client.getNumberId(rawNumber);
+      verified = true;
+    } catch (err) {
+      console.log(`   ⚠️ No se pudo verificar ${r.nombre}, intentando envío directo...`);
+      console.error(`      Detalle: ${err.stack || err.message}`);
+    }
+
+    if (verified && !registeredId) {
+      console.log(`   📵 ${r.nombre} (${r.telefono}) — no registrado en WhatsApp`);
+      r.estado = 'sin_whatsapp';
+      sinWA++;
+      saveJSON(config.restaurantesFile, restaurants);
+      continue;
+    }
+
+    const chatId = registeredId ? registeredId._serialized : (r.telefono.includes('@c.us') ? r.telefono : `${r.telefono}@c.us`);
 
     try {
       console.log(`   📤 Enviando a: ${r.nombre} (${r.telefono})`);
@@ -90,16 +118,11 @@ async function sendPending(client, { onStopCheck } = {}) {
       console.log(`   ✅ Enviado correctamente`);
       r.estado = 'enviado';
       enviados++;
-
-      if (enviados + errores + sinWA < pendientes.length && !detenido) {
-        const delay = randomDelay(config.minDelay, config.maxDelay);
-        console.log(`   ⏳ Esperando ${Math.round(delay / 1000)} segundos...`);
-        await sleep(delay);
-      }
     } catch (err) {
-      console.log(`   ❌ Error: ${err.message}`);
+      console.log(`   ❌ Error al enviar a ${r.nombre}: ${err.message}`);
+      console.error(`      Detalle: ${err.stack || err.message}`);
 
-      if (err.message.includes('not registered') || err.message.includes('no longer exists')) {
+      if (err.message && (err.message.includes('not registered') || err.message.includes('no longer exists'))) {
         r.estado = 'sin_whatsapp';
         sinWA++;
       } else {

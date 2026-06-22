@@ -48,7 +48,7 @@ async function exportToExcel() {
   const existingPhones = new Set();
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber > 1) {
-      const phone = row.getCell(2).value;
+      const phone = row.getCell(3).value;
       if (phone) existingPhones.add(String(phone));
     }
   });
